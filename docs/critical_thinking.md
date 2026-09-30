@@ -1,0 +1,3 @@
+# Critical Thinking
+
+I used the center of the canvas and made the face radius 40% of the shortest side so the face can adjust to different screen sizes. For the mouth, I used the face radius to calculate the mouth position and size, and I used drawArc to create the smile and frown. I tested the app on the phone emulator and the face stayed centered and visible when the screen size changed because the drawing uses the canvas size instead of fixed screen positions. The shouldRepaint method checks if the mood or face type changed so Flutter only redraws the face when it needs to.
