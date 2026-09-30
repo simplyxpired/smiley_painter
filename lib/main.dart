@@ -1,5 +1,5 @@
 // In-Class Activity 06 — Drawing with Flutter
-// Student: Brandon Walker
+// Name: Brandon Walker
 // Date: September 30, 2026
 
 import 'package:flutter/material.dart';
@@ -26,8 +26,15 @@ class SmileyApp extends StatelessWidget {
   }
 }
 
-class DrawingPlayground extends StatelessWidget {
+class DrawingPlayground extends StatefulWidget {
   const DrawingPlayground({super.key});
+
+  @override
+  State<DrawingPlayground> createState() => _DrawingPlaygroundState();
+}
+
+class _DrawingPlaygroundState extends State<DrawingPlayground> {
+  double mood = 0.8;
 
   @override
   Widget build(BuildContext context) {
@@ -35,17 +42,48 @@ class DrawingPlayground extends StatelessWidget {
       appBar: AppBar(
         title: const Text('CustomPainter Smiley Lab'),
       ),
-      body: Center(
-        child: CustomPaint(
-          size: const Size(300, 300),
-          painter: SmileyPainter(),
-        ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: CustomPaint(
+                size: const Size(300, 300),
+                painter: SmileyPainter(mood: mood),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Text(
+                  'Mood: ${mood.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 20),
+                ),
+                Slider(
+                  value: mood,
+                  min: 0,
+                  max: 1,
+                  onChanged: (double value) {
+                    setState(() {
+                      mood = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class SmileyPainter extends CustomPainter {
+  SmileyPainter({required this.mood});
+
+  final double mood;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(
@@ -55,16 +93,22 @@ class SmileyPainter extends CustomPainter {
 
     final radius = size.shortestSide * 0.4;
 
+    Color faceColor;
+
+    if (mood < 0.35) {
+      faceColor = Colors.lightBlue;
+    } else if (mood <= 0.7) {
+      faceColor = Colors.yellow;
+    } else {
+      faceColor = Colors.orangeAccent;
+    }
+
     // Face
     final facePaint = Paint()
-      ..color = Colors.yellow
+      ..color = faceColor
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(
-      center,
-      radius,
-      facePaint,
-    );
+    canvas.drawCircle(center, radius, facePaint);
 
     // Border
     final borderPaint = Paint()
@@ -72,11 +116,7 @@ class SmileyPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
 
-    canvas.drawCircle(
-      center,
-      radius,
-      borderPaint,
-    );
+    canvas.drawCircle(center, radius, borderPaint);
 
     // Eyes
     final eyePaint = Paint()
@@ -99,7 +139,7 @@ class SmileyPainter extends CustomPainter {
       eyePaint,
     );
 
-    // Smile
+    // Mouth
     final mouthPaint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke
@@ -115,17 +155,51 @@ class SmileyPainter extends CustomPainter {
       height: radius * 0.7,
     );
 
-    canvas.drawArc(
-      mouthRect,
-      0.15 * pi,
-      0.70 * pi,
-      false,
-      mouthPaint,
-    );
+    // Sad
+    if (mood < 0.35) {
+      canvas.drawArc(
+        mouthRect.translate(0, radius * 0.30),
+        1.15 * pi,
+        0.70 * pi,
+        false,
+        mouthPaint,
+      );
+    }
+
+    // Neutral / soft smile
+    else if (mood <= 0.7) {
+      canvas.drawArc(
+        mouthRect,
+        0.15 * pi,
+        0.70 * pi,
+        false,
+        mouthPaint,
+      );
+    }
+
+    // Happy / big smile
+    else {
+      final bigSmile = Rect.fromCenter(
+        center: Offset(
+          center.dx,
+          center.dy + radius * 0.10,
+        ),
+        width: radius * 1.2,
+        height: radius,
+      );
+
+      canvas.drawArc(
+        bigSmile,
+        0.15 * pi,
+        0.70 * pi,
+        false,
+        mouthPaint,
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant SmileyPainter oldDelegate) {
-    return false;
+    return oldDelegate.mood != mood;
   }
 }
